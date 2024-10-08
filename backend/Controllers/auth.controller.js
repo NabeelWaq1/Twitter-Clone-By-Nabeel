@@ -114,7 +114,13 @@ export const Logout = async (req, res) => {
 export const getMe = async (req, res) => {
     try {
         const userId = req.user._id;
+        if(userId === undefined) {
+            return res.status(401).json({error: "User not found"});
+        }
         const user = await User.findById(userId).select("-password");
+        if(!user || user === undefined) {
+            return res.status(401).json({error: "User not found"});
+        }
         res.status(200).json({ user });
     } catch (error) {
         console.log(error.message);
