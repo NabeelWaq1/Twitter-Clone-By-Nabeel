@@ -7,8 +7,11 @@ import postRouter from './Routes/post.route.js'
 import notificationRouter from './Routes/notification.route.js'
 import { dbConnect } from './Config/dbConnect.js';
 import {v2 as cloudinary} from 'cloudinary';
+import path from 'path';
 
 const app = express();
+
+const __dirname = path.resolve();
 
 dotenv.config();
 dbConnect();
@@ -29,6 +32,13 @@ app.use('/api/post', postRouter);
 app.use('/api/notification', notificationRouter); 
 
 const port = process.env.PORT || 5000;
+
+if(process.env.NODE_ENV === 'production'){
+  app.use(express.static(path.join(__dirname ,'frontend/dist')));
+  app.get("*", (req, res) => {
+    res.sendFile(path.resolve(__dirname,'frontend/dist/index.html'));
+  })
+}
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);

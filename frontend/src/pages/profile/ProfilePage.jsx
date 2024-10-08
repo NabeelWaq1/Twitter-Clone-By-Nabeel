@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
-import Posts from "../../components/common/Posts";
-import ProfileHeaderSkeleton from "../../components/skeletons/ProfileHeaderSkeleton";
-import EditProfileModal from "./EditProfileModal";
+import Posts from "../../components/common/Posts.jsx";
+import ProfileHeaderSkeleton from "../../components/skeletons/ProfileHeaderSkeleton.jsx";
+import EditProfileModal from "./EditProfileModal.jsx";
 
-import { POSTS } from "../../utils/db/dummy";
+import { POSTS } from "../../utils/db/dummy.js";
 
 import { FaArrowLeft } from "react-icons/fa6";
 import { IoCalendarOutline } from "react-icons/io5";
@@ -15,17 +15,19 @@ import { useQuery } from "@tanstack/react-query";
 import { formatMemberSinceDate } from "../../utils/date/index.js";
 import toast from "react-hot-toast";
 import useFollow from "../../Hooks/useFollow.jsx";
+import useUpdateUserProfile from "./useUpdateUserProfile.jsx";
 
 const ProfilePage = () => {
 	const [coverImg, setCoverImg] = useState(null);
 	const [profileImg, setProfileImg] = useState(null);
 	const [feedType, setFeedType] = useState("posts");
+	const {username} = useParams();
 	const {data:authUser} = useQuery({queryKey:['authUser']})
-	const { follow, isPending } = useFollow();
+	const { followUnfollow, isPending } = useFollow();
 
 	const coverImgRef = useRef(null);
 	const profileImgRef = useRef(null);
-	const {username} = useParams();
+
 
 const {data:user, isLoading, refetch, isRefetching} = useQuery({
 	queryKey: ["userProfile"],
@@ -42,12 +44,17 @@ const {data:user, isLoading, refetch, isRefetching} = useQuery({
 	},
 	onError: (error) => {
 		toast.error(error.message);
-	} 
+	},
+	retry:false
 });
+
 
 	const isMyProfile = authUser?.user?._id === user?._id;
 	const memberSinceDate = formatMemberSinceDate(user?.createdAt);
 	const amIFollowing = authUser?.user?.following.includes(user?._id);
+
+	const {isUpdating, updateProfile} = useUpdateUserProfile();
+	
 
 	useEffect(() => {
 		refetch();
@@ -69,10 +76,10 @@ const {data:user, isLoading, refetch, isRefetching} = useQuery({
 		<>
 			<div className='flex-[4_4_0]  border-r border-gray-700 min-h-screen '>
 				{/* HEADER */}
-				{isLoading && isRefetching && <ProfileHeaderSkeleton />}
+				{((isLoading && isRefetching) || isUpdating) && <ProfileHeaderSkeleton />}
 				{!isLoading && !isRefetching && !user && <p className='text-center text-lg mt-4'>User not found</p>}
 				<div className='flex flex-col'>
-					{!isLoading && !isRefetching && user && (
+					{!isLoading && !isRefetching && !isUpdating && user && (
 						<>
 							<div className='flex gap-10 px-4 py-2 items-center'>
 								<Link to='/'>
@@ -129,11 +136,11 @@ const {data:user, isLoading, refetch, isRefetching} = useQuery({
 								</div>
 							</div>
 							<div className='flex justify-end px-4 mt-5'>
-								{isMyProfile && <EditProfileModal />}
+								{isMyProfile && <EditProfileModal authUser={authUser} />}
 								{!isMyProfile && (
 									<button
 										className='btn btn-outline rounded-full btn-sm'
-										onClick={() => follow(user?._id)}
+										onClick={() => followUnfollow(user?._id)}
 									>
 										{isPending && "Loading..."}
 										{!isPending && amIFollowing && "Unfollow"}
@@ -143,9 +150,13 @@ const {data:user, isLoading, refetch, isRefetching} = useQuery({
 								{(coverImg || profileImg) && (
 									<button
 										className='btn btn-primary rounded-full btn-sm text-white px-4 ml-2'
-										onClick={() => alert("Profile updated successfully")}
+										onClick={async () => {
+											 await updateProfile({coverImg, profileImg})
+											 setCoverImg(null);
+											 setProfileImg(null);
+									}}
 									>
-										Update
+										{isUpdating ? "updating..." : "Update"}
 									</button>
 								)}
 							</div>
@@ -163,12 +174,12 @@ const {data:user, isLoading, refetch, isRefetching} = useQuery({
 											<>
 												<FaLink className='w-3 h-3 text-slate-500' />
 												<a
-													href='https://youtube.com/@asaprogrammer_'
+													href={`${user?.link}`}
 													target='_blank'
 													rel='noreferrer'
 													className='text-sm text-blue-500 hover:underline'
 												>
-													youtube.com/@asaprogrammer_
+													{user?.link}
 												</a>
 											</>
 										</div>
