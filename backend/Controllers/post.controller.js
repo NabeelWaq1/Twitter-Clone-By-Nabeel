@@ -48,7 +48,7 @@ export const getLikedPosts = async (req, res) => {
             return res.status(404).json({error: "No liked posts found."});
         }
         
-        res.status(200).json({likedPosts});
+        res.status(200).json({posts:likedPosts});
 
     } catch (error) {
         console.log(error.message);
