@@ -188,13 +188,16 @@ export const likeUnlikePost = async (req, res) => {
 
 export const getFollowingPosts = async (req, res) => {
     try {
-        const userId = req.params.id;
-        const user = await User.findById(userId);
-        if(!user) {
+        const userId = req.user._id;
+        const currUser = await User.findById(userId);
+        if(!currUser) {
             return res.status(401).json({error: "User not found."});
         }
         
-        const followingUserIds = user.following;
+        const followingUserIds = currUser.following;
+        if(!followingUserIds){
+            return res.status(404).json({error: "No following posts found."});
+        }
         const followingPosts = await Post.find({user: {$in: followingUserIds}}).sort({createdAt: -1}).populate({
             path:'user',
             select: '-password'
@@ -207,7 +210,7 @@ export const getFollowingPosts = async (req, res) => {
             return res.status(404).json({error: "No following posts found."});
         }
         
-        res.status(200).json({followingPosts});
+        return res.status(200).json({posts:followingPosts});
     } catch (error) {
         console.log(error.message);
         return res.status(500).json({error: error.message})
@@ -236,7 +239,7 @@ export const getPostsOfUser = async (req, res) => {
         }
         
         res.status(200).json({posts});
-        
+
     } catch (error) {
         console.log(error.message);
         return res.status(500).json({error: error.message})
