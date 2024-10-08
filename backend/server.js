@@ -3,6 +3,8 @@ import dotenv from 'dotenv'
 import cookieParser from 'cookie-parser';
 import authRouter from './Routes/auth.route.js'
 import userRouter from './Routes/user.route.js'
+import postRouter from './Routes/post.route.js'
+import notificationRouter from './Routes/notification.route.js'
 import { dbConnect } from './Config/dbConnect.js';
 import {v2 as cloudinary} from 'cloudinary';
 
@@ -23,6 +25,8 @@ app.use(cookieParser());
 
 app.use('/api/auth', authRouter); 
 app.use('/api/user', userRouter); 
+app.use('/api/post', postRouter); 
+app.use('/api/notification', notificationRouter); 
 
 const port = process.env.PORT || 5000;
 
