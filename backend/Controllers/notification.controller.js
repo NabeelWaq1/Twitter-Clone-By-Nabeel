@@ -7,6 +7,7 @@ export const getNotifications = async (req, res) => {
             path: 'from',
             select: 'profileImg username'
         });
+
         if(!notifications){
             return res.status(404).json({error: "No notifications found."});
         }

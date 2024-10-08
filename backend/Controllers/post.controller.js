@@ -175,9 +175,12 @@ export const likeUnlikePost = async (req, res) => {
                 from: userId,
                 type: "like"
             })
+            const updatedLikes = post.likes;
+            if(newNotification.to.toString() === newNotification.from.toString()){
+                return res.status(200).json(updatedLikes);
+            }
             await newNotification.save();
 
-            const updatedLikes = post.likes;
 
             return res.status(201).json(updatedLikes);
         }
