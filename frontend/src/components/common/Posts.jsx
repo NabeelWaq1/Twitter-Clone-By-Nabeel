@@ -18,7 +18,6 @@ const Posts = ({ feedType }) => {
 
     const PostEndPoint = getPostsEndPoint();
 
-    console.log(PostEndPoint);
     
 
 
@@ -38,7 +37,6 @@ const Posts = ({ feedType }) => {
             }
         }
     })
-console.log(posts);
 
     useEffect(()=>{
         refetch();
