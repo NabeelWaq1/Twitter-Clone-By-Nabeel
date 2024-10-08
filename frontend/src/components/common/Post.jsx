@@ -20,8 +20,6 @@ const Post = ({ post }) => {
 
 	const formattedDate = "1h";
 
-	const isCommenting = false;
-
 	const queryClient = useQueryClient();
 
 	const {mutate:deletePost, isPending} = useMutation({
@@ -48,8 +46,38 @@ const Post = ({ post }) => {
 		deletePost();
 	};
 
+	const {mutate:commentPost, isPending:isCommenting} = useMutation({
+		mutationFn: async () => {
+			try {
+				const res = await fetch(`/api/post/comment/${post._id}`,{
+					method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({text: comment}),
+				})
+				const data = await res.json();
+				console.log(data);
+				
+                if(!res.ok) throw new Error(data.error || "Something went wrong");
+				return data;
+			} catch (error) {
+				console.log(error.message);
+				throw new Error(error.message);
+			}
+		},
+		onSuccess: () => {
+        queryClient.invalidateQueries({queryKey:["posts"]});
+		},
+		onError: (error) => {
+        toast.error(error.message)
+		}
+	});
+
 	const handlePostComment = (e) => {
 		e.preventDefault();
+		if(isCommenting) return;
+		commentPost();
 	};
 
 	const {mutate:likePost, isPending:isLiking} = useMutation({
